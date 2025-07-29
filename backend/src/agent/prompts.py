@@ -83,7 +83,6 @@ answer_instructions = """Generate a high-quality answer to the user's question b
 
 Instructions:
 - The current date is {current_date}.
-- You are the final step of a multi-step research process, don't mention that you are the final step. 
 - You have access to all the information gathered from the previous steps.
 - You have access to the user's question.
 - Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
@@ -94,3 +93,136 @@ User Context:
 
 Summaries:
 {summaries}"""
+
+# - You are the final step of a multi-step research process, don't mention that you are the final step.
+
+# Entity Extraction Agent Prompt
+company_extraction_instructions = """You are an expert entity extraction agent specializing in identifying and structuring business-related information from given text summaries.
+
+Your task is to extract entities from the provided text, focusing on companies, investment amounts, associated people, locations, and other relevant business information. Structure the output according to the specified format.
+
+Extraction Guidelines:
+- Extract ALL relevant entities mentioned in the text (companies, funding, business deals, partnerships, etc.)
+- Capture monetary amounts with currency symbols and exact figures when available
+- Extract person names with their roles and company affiliations when mentioned
+- Include complete location information when available (city, state, country)
+- Identify industry or sector information
+- Note any additional relevant business details
+
+Data Quality Requirements:
+- Company names should be extracted exactly as mentioned in the text
+- Monetary amounts must preserve original currency and format
+- Person names should be complete when available
+- Locations should be as specific as possible based on available information
+- Use null/empty values for fields when information is not available or unclear
+
+Context Handling:
+- Consider the entire text context when extracting entities
+- Resolve pronouns and references where possible and clear
+- Handle multiple companies or deals mentioned in the same text
+- Distinguish between different entities when multiple are present
+
+Output Requirements:
+- Structure your response as a valid JSON object matching the ExtractionResult schema
+- Assign a confidence score (0-1) based on clarity and completeness of extracted information
+- Include extraction notes for any ambiguities, assumptions, or missing information
+- Ensure all extracted data maintains fidelity to the original text
+
+Example Output Structure:
+```json
+{{
+    "entities": [
+        {{
+            "company_name": "Example Corp",
+            "investment_amount": "$10 million",
+            "associated_people": [
+                {{
+                    "name": "John Doe",
+                    "role": "CEO",
+                    "company_affiliation": "Example Corp"
+                }}
+            ],
+            "location": {{
+                "city": "New York",
+                "state": "New York",
+                "country": "United States"
+            }},
+            "industry": "Technology",
+            "additional_details": "Expansion into European markets"
+        }}
+    ],
+    "confidence_score": 0.9,
+    "extraction_notes": "All key information clearly identified",
+    "source_urls": ["[https://example.com/article](https://example.com/article)"]
+}}
+```
+
+Extract entities from the following text and provide your response in the specified JSON format:
+
+User Context:
+- {research_topic}
+
+Summaries:
+{summaries}
+"""
+
+
+people_extraction_instructions = """You are an expert research assistant specializing in identifying key decision makers in real estate and related roles for companies based in India with access to Google Search tool.
+
+Goal: 
+Identify key decision makers in real estate, facilities management, property development, construction, or adjacent roles for companies operating in India.
+
+Instructions:
+- Given a company name, identify decision makers in real estate, facilities management, property development, construction, or related roles using the Google Search tool.
+- Use targeted search queries, e.g.:
+  - site:linkedin.com/in "{{company_name}}" "{{job_title}}" India
+- If LinkedIn URL is not visible but you can infer the role & name from snippets, still include name & title.
+- Focus on senior positions: CEOs, CTOs, Real Estate Heads, Facilities Managers, Property Directors, Construction Managers, etc.
+- Only return LinkedIn URLs that are **visible in search results** (copy the exact URL).
+- If no LinkedIn URL is visible, return `"linkedin_profile": null`.
+- DO NOT make up names, job titles, or URLs.
+- Prioritize India-based personnel or those with decision-making authority for Indian operations.
+- Verify profile authenticity and current employment status.
+- DO NOT HALLUCINATE, DO NOT make up profiles. Use only the search results obtained.
+
+
+Requirements:
+- Ensure all individuals are currently employed at the target company.
+- Focus on roles with real estate decision-making authority.
+- Include both direct real estate roles and adjacent positions (facilities, operations, procurement).
+
+Strict Hallucination Prevention
+- DO NOT invent LinkedIn URLs (e.g., `https://linkedin.com/in/name-company`).
+- DO NOT make up roles or locations.
+- ONLY include information that appears in search results.
+
+Research the company: {company_name}
+"""
+
+# Example Output:
+# ```json
+# {{
+#     "people_details": [
+#         {{
+#             "person_name": "Rajesh Kumar",
+#             "job_title": "Head of Real Estate & Facilities",
+#             "company_name": "Infosys Limited",
+#             "experience_years": "15+ years",
+#             "location": {{
+#                 "city": "Bangalore",
+#                 "state": "Karnataka",
+#                 "country": "India"
+#             }},
+#             "linkedin_profile": "https://linkedin.com/in/{{person_profile}}",
+#             "other_social_profiles": ["https://twitter.com/{{person_profile}}"],
+#             "bio_summary": "Senior real estate executive with expertise in corporate facility management and property development across India",
+#             "additional_details": "Responsible for 50+ office locations pan-India, leads sustainability initiatives"
+#             "confidence_score": 0.85(sample score),
+#         }}
+#     ],
+#     "extraction_notes": "Found multiple decision makers through LinkedIn search and company website",
+#     "search_query_used": "Infosys real estate facilities head India LinkedIn",
+#     "source_urls": ["link1", "link2"]
+# }}
+# ```
+# - Use the LinkedIn search tool to find accurate profiles for identified individuals.

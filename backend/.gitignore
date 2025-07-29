@@ -6,6 +6,10 @@ uv.lock
 
 .env
 
+test-graph.ipynb
+practice
+
+
 # C extensions
 *.so
 

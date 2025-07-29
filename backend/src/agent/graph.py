@@ -217,10 +217,11 @@ def evaluate_research(
         ]
 
 
+
 def finalize_answer(state: OverallState, config: RunnableConfig):
     """LangGraph node that finalizes the research summary.
 
-    Prepares the final output by deduplicating and formatting sources, then
+    Prepares the output by deduplicating and formatting sources, then
     combining them with the running summary to create a well-structured
     research report with proper citations.
 
@@ -251,17 +252,19 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     result = llm.invoke(formatted_prompt)
 
     # Replace the short urls with the original urls and add all used urls to the sources_gathered
-    unique_sources = []
-    for source in state["sources_gathered"]:
-        if source["short_url"] in result.content:
-            result.content = result.content.replace(
-                source["short_url"], source["value"]
-            )
-            unique_sources.append(source)
+    # unique_sources = []
+    # for source in state["sources_gathered"]:
+    #     if source["short_url"] in result.content:
+    #         result.content = result.content.replace(
+    #             source["short_url"], source["value"]
+    #         )
+    #         unique_sources.append(source)
+            
+    # print("FINALIZE ANSWER RESULTS: ", result)
 
     return {
         "messages": [AIMessage(content=result.content)],
-        "sources_gathered": unique_sources,
+        # "sources_gathered": unique_sources,
     }
 
 
