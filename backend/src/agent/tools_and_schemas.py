@@ -34,7 +34,7 @@ class Location(BaseModel):
     city: Optional[str] = Field(default=None, description="City name")
     state: Optional[str] = Field(default=None, description="State or province")
     country: Optional[str] = Field(default=None, description="Country name")
-    full_address: Optional[str] = Field(default=None, description="Complete address if available")
+    # full_address: Optional[str] = Field(default=None, description="Complete address if available")
 
 class InvestmentEntity(BaseModel):
     company_name: str = Field(description="Name of the company receiving investment")
@@ -59,23 +59,23 @@ class ExtractionResult(BaseModel):
 class PersonDetail(BaseModel):
     person_name: str = Field(description="Full name of the person")
     job_title: Optional[str] = Field(default=None, description="Current job title or position")
-    company_name: str = Field(description="Name of the company they are associated with")
-    # previous_roles: Optional[List[str]] = Field(default_factory=list, description="Previous job titles or positions mentioned")
-    # education: Optional[str] = Field(default=None, description="Educational background if mentioned")
     experience_years: Optional[str] = Field(default=None, description="Years of experience if mentioned")
     location: Optional[Location] = Field(default=None, description="Person's location (office/residence)")
-    # achievements: Optional[List[str]] = Field(default_factory=list, description="Notable achievements or awards mentioned")
     linkedin_profile: Optional[str] = Field(default=None, description="LinkedIn profile URL if mentioned")
-    other_social_profiles: Optional[List[str]] = Field(default_factory=list, description="Other social media profiles if mentioned")
+    # other_social_profiles: Optional[List[str]] = Field(default_factory=list, description="Other social media profiles if mentioned")
     bio_summary: Optional[str] = Field(default=None, description="Brief biographical summary")
     confidence_score: float = Field(ge=0.0, le=1.0, description="Confidence score for the extraction (0-1)")
     additional_details: Optional[str] = Field(default=None, description="Any other relevant personal/professional details")
 
 class PeopleExtractionResult(BaseModel):
     people_details: List[PersonDetail] = Field(description="List of extracted people details")
+    company_name: str = Field(description="Name of the company they are associated with")
     extraction_notes: Optional[str] = Field(default=None, description="Any notes about the extraction process or ambiguities")
-    search_query_used: str = Field(description="The search query used to find this information")
-    source_urls: List[str] = Field(description="URLs of articles/sources from which people details were extracted")
+    # search_query_used: str = Field(description="The search query used to find this information")
+    # source_urls: List[str] = Field(description="URLs of articles/sources from which people details were extracted")
+
+class FinalResult(BaseModel):
+    companies: List[PeopleExtractionResult] = Field(description="List of extracted companies with people details")
 
 
 @tool

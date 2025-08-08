@@ -1,4 +1,5 @@
 import { useStream } from '@langchain/langgraph-sdk/react';
+import { UIMessage, uiMessageReducer } from '@langchain/langgraph-sdk/react-ui';
 import type { Message } from '@langchain/langgraph-sdk';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ProcessedEvent } from '@/components/ActivityTimeline';
@@ -16,6 +17,7 @@ export default function App() {
 	const [error, setError] = useState<string | null>(null);
 	const thread = useStream<{
 		messages: Message[];
+		ui?: UIMessage<'companies_list', { companies: any[] }>[];
 		initial_search_query_count: number;
 		max_research_loops: number;
 		reasoning_model: string;
@@ -23,6 +25,16 @@ export default function App() {
 		apiUrl: import.meta.env.DEV ? 'http://localhost:2024' : 'http://localhost:8123',
 		assistantId: 'agent',
 		messagesKey: 'messages',
+		onCustomEvent: (event, options) => {
+			options.mutate((prev) => {
+				const ui = uiMessageReducer(
+					prev.ui ?? [],
+					event as UIMessage<'companies_list', { companies: any[] }>
+				) as UIMessage<'companies_list', { companies: any[] }>[];
+				// console.log('Inside On Custom Event of ui.');
+				return { ...prev, ui };
+			});
+		},
 		onUpdateEvent: (event: any) => {
 			let processedEvent: ProcessedEvent | null = null;
 			if (event.generate_query) {
@@ -48,6 +60,24 @@ export default function App() {
 				processedEvent = {
 					title: 'Finalizing Answer',
 					data: 'Composing and presenting the final answer.',
+				};
+			} else if (event.extract_companies) {
+				const company = event.extract_companies.company_list || [];
+				const numCompanies = company.length;
+				processedEvent = {
+					title: 'Extracting Companies',
+					data: `Extracted ${numCompanies} companies from the extracted data.`,
+				};
+			} else if (event.find_people) {
+				const company = event.find_people.companies_found;
+				processedEvent = {
+					title: `Finding Associated People at ${company}`,
+					data: 'Finding people associated with the companies extracted from the data.',
+				};
+			} else if (event.last_answer) {
+				processedEvent = {
+					title: 'Curating the report',
+					data: 'Curating your final report.',
 				};
 				hasFinalizeEventOccurredRef.current = true;
 			}
@@ -162,6 +192,7 @@ export default function App() {
 					<ChatMessagesView
 						messages={thread.messages}
 						isLoading={thread.isLoading}
+						thread={thread}
 						scrollAreaRef={scrollAreaRef}
 						onSubmit={handleSubmit}
 						onCancel={handleCancel}

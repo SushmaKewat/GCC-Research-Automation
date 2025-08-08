@@ -1,11 +1,13 @@
 import os
+import uuid
 
-from agent.tools_and_schemas import SearchQueryList, Reflection
+from agent.tools_and_schemas import SearchQueryList, Reflection, ExtractionResult, PeopleExtractionResult, FinalResult
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage
 from langgraph.types import Send
 from langgraph.graph import StateGraph
 from langgraph.graph import START, END
+from langgraph.graph.ui import push_ui_message
 from langchain_core.runnables import RunnableConfig
 from google.genai import Client
 
@@ -14,6 +16,8 @@ from agent.state import (
     QueryGenerationState,
     ReflectionState,
     WebSearchState,
+    CompanyExtractionState, 
+    ExtractPeopleDetailsState
 )
 from agent.configuration import Configuration
 from agent.prompts import (
@@ -22,6 +26,8 @@ from agent.prompts import (
     web_searcher_instructions,
     reflection_instructions,
     answer_instructions,
+    company_extraction_instructions,
+    people_extraction_instructions
 )
 from langchain_google_genai import ChatGoogleGenerativeAI
 from agent.utils import (
@@ -29,6 +35,7 @@ from agent.utils import (
     get_research_topic,
     insert_citation_markers,
     resolve_urls,
+    save_response
 )
 
 load_dotenv()
@@ -252,13 +259,13 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     result = llm.invoke(formatted_prompt)
 
     # Replace the short urls with the original urls and add all used urls to the sources_gathered
-    # unique_sources = []
-    # for source in state["sources_gathered"]:
-    #     if source["short_url"] in result.content:
-    #         result.content = result.content.replace(
-    #             source["short_url"], source["value"]
-    #         )
-    #         unique_sources.append(source)
+    unique_sources = []
+    for source in state["sources_gathered"]:
+        if source["short_url"] in result.content:
+            result.content = result.content.replace(
+                source["short_url"], source["value"]
+            )
+            unique_sources.append(source)
             
     # print("FINALIZE ANSWER RESULTS: ", result)
 
@@ -268,6 +275,165 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     }
 
 
+def continue_to_comp_and_people_research( state: OverallState, config: RunnableConfig ):
+    """Langgraph node that decides whether the data is sufficient or need to continue to company and people research."""
+    configurable = Configuration.from_runnable_config(config)
+    reasoning_model = state.get("reasoning_model") or configurable.reflection_model
+    
+    instructions="""
+    Given the summaries, determine if the data is sufficient to answer the research question or you need to continue to research about companies and associated people.
+    You answer should be a single word.
+    If the data is sufficient to answer the question, return "Sufficient", else if more research is needed for companies/people then return "Continue".
+    
+    Summaries
+    {summaries}
+    """
+
+    formatted_prompt = instructions.format(
+        summaries="\n---\n\n".join(state["messages"][-1].content),
+    )
+
+    # init Reasoning Model
+    llm = ChatGoogleGenerativeAI(
+        model=reasoning_model,
+        temperature=0,
+        max_retries=2,
+        api_key=os.getenv("GEMINI_API_KEY"),
+    )
+    result = llm.invoke(formatted_prompt)
+
+    if result.content == "Sufficient":
+        return "finalize_answer"
+    else:
+        return "continue"
+
+# -----------------------NEW NODES-------------------------------
+def extract_companies(state: OverallState, config: RunnableConfig) -> CompanyExtractionState:
+  """Langgraph node that extracts companies from the final summary result.
+  
+  Processes the summaries to extract structured business entities including comapnies, investment amount, associated people and location.
+  Uses the configure LLM to perform with high accuracy.
+  
+  Args:
+      state: Current graph state containing the running summary and sources gathered
+      config: Configuration for the runnable, including LLM provider settings
+  
+  Returns:
+      Dictionary with state update, including running_summary key containing list of ExtractionResult objects
+      """
+      
+  configurable = Configuration.from_runnable_config(config)
+  reasoning_model = state.get("reasoning_model") or configurable.reflection_model
+
+  formatted_prompt = company_extraction_instructions.format(
+      research_topic=get_research_topic(state["messages"]),
+      summaries="\n---\n\n".join(state["messages"][-1].content),
+  )
+
+  # init Reasoning Model
+  llm = ChatGoogleGenerativeAI(
+      model=reasoning_model,
+      temperature=0,
+      max_retries=2,
+      api_key=os.getenv("GEMINI_API_KEY"),
+  )
+
+  structured_llm = llm.with_structured_output(ExtractionResult)
+
+  # Run the LLM
+  results =  structured_llm.invoke(formatted_prompt)
+  
+  company_list = list(company.company_name for company in results.entities)
+  
+  return {
+      "companies": [results],
+      "company_list": company_list
+  }
+
+def continue_to_find_people(state: CompanyExtractionState):
+    """LangGraph node that sends the comapny search queries to the find_people node.
+
+    This is used to spawn n number of find_people nodes, one for each company."""
+    
+    return [
+        Send("find_people", {"company": company, "id": int(idx)})
+             for idx, company in enumerate(state["company_list"])
+    ]
+    
+def find_people(state: ExtractPeopleDetailsState, config:RunnableConfig) -> OverallState:
+    """LangGraph node that performs web research using the native Google Search API tool to find people/decision-makers associated with the company.
+
+    Executes a web search using the native Google Search API tool in combination with Gemini 2.0 Flash.
+
+    Args:
+        state: Current graph state containing the company_name and research loop count
+        config: Configuration for the runnable, including search API settings
+
+    Returns:
+        Dictionary with state update, including sources_gathered, research_loop_count, and web_research_results"""
+        
+    configurable = Configuration.from_runnable_config(config)
+    
+    formatted_prompt = people_extraction_instructions.format(
+        company_name=state["company"],
+    )
+    
+    response = genai_client.models.generate_content(
+        model=configurable.answer_model,
+        contents=formatted_prompt,
+        config={
+            "tools": [{"google_search": {}}],
+            "temperature": 0,
+        },
+    )
+    
+    # response = save_response(response)
+    
+    
+    return {
+        "people_details": [f"{state['company']}: \n"+response.text],
+        "companies_found": [state["company"]],
+    } 
+    
+def last_answer(state: OverallState, config: Configuration):
+    """Langgraph node that returns the final answer containg the details about people associated with companies."""   
+    configurable = Configuration.from_runnable_config(config)
+    reasoning_model = state.get("reasoning_model") or configurable.answer_model
+    
+    # Format the prompt
+    current_date = get_current_date()
+    
+    # print("FIND PEOPLE RESPONSE: ", state['people_details'])
+    
+    formatted_prompt = answer_instructions.format(
+        current_date=current_date,
+        research_topic=get_research_topic(state["messages"]),
+        summaries="\n---\n\n".join(state["people_details"]),
+    )
+
+    # init Reasoning Model, default to Gemini 2.5 Flash
+    llm = ChatGoogleGenerativeAI(
+        model=reasoning_model,
+        temperature=0,
+        max_retries=2,
+        api_key=os.getenv("GEMINI_API_KEY"),
+    ).with_structured_output(FinalResult)
+    
+    result = llm.invoke(formatted_prompt)
+    
+    # print("STATE BEFORE FINAL RESULTS: ", state["messages"])
+    # The above code is a Python script that prints the value of the variable `result` along with the
+    # text "FINAL RESULT: ".
+    print("FINAL RESULT: ", result.model_dump())
+    
+    msg = AIMessage(id=str(uuid.uuid4()), content="Key companies: \n")
+    
+    push_ui_message("companies_list", {"companies": result.model_dump()['companies']}, message=msg) 
+    
+    return {
+        "messages": [msg]
+    }
+    
 # Create our Agent Graph
 builder = StateGraph(OverallState, config_schema=Configuration)
 
@@ -276,6 +442,9 @@ builder.add_node("generate_query", generate_query)
 builder.add_node("web_research", web_research)
 builder.add_node("reflection", reflection)
 builder.add_node("finalize_answer", finalize_answer)
+builder.add_node("extract_companies", extract_companies)
+builder.add_node("find_people", find_people)
+builder.add_node("last_answer", last_answer)
 
 # Set the entrypoint as `generate_query`
 # This means that this node is the first one called
@@ -291,6 +460,59 @@ builder.add_conditional_edges(
     "reflection", evaluate_research, ["web_research", "finalize_answer"]
 )
 # Finalize the answer
-builder.add_edge("finalize_answer", END)
+# builder.add_edge("finalize_answer", "extract_companies")
+builder.add_conditional_edges(
+    "finalize_answer",
+    continue_to_comp_and_people_research,
+    {
+        "finalize_answer": END,
+        "continue": "extract_companies",
+    }
+)
+builder.add_conditional_edges("extract_companies", continue_to_find_people, ["find_people"])
+builder.add_edge("find_people", "last_answer")
+builder.add_edge("last_answer", END)
 
-graph = builder.compile(name="pro-search-agent")
+# builder.compile(name="pro-search-agent")
+graph = builder.compile(name="pro-search-agent")  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+# Create our Agent Graph
+# builder = StateGraph(OverallState, config_schema=Configuration)
+
+# # Define the nodes we will cycle between
+# builder.add_node("generate_query", generate_query)
+# builder.add_node("web_research", web_research)
+# builder.add_node("reflection", reflection)
+# builder.add_node("finalize_answer", finalize_answer)
+
+# # Set the entrypoint as `generate_query`
+# # This means that this node is the first one called
+# builder.add_edge(START, "generate_query")
+# # Add conditional edge to continue with search queries in a parallel branch
+# builder.add_conditional_edges(
+#     "generate_query", continue_to_web_research, ["web_research"]
+# )
+# # Reflect on the web research
+# builder.add_edge("web_research", "reflection")
+# # Evaluate the research
+# builder.add_conditional_edges(
+#     "reflection", evaluate_research, ["web_research", "finalize_answer"]
+# )
+# # Finalize the answer
+# builder.add_edge("finalize_answer", END)
+
+# graph = builder.compile(name="pro-search-agent")

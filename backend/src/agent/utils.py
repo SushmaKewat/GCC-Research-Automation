@@ -164,3 +164,27 @@ def get_citations(response, resolved_urls_map):
                     pass
         citations.append(citation)
     return citations
+
+
+def save_response(response):
+    res = {
+        "text": "",
+        "grounding_metadata": [],
+        "grounding_supports": [],
+        "web_search_queries": []
+    }
+    
+    res["text"] = response.content.parts[0].text
+    
+    for i, chunk in enumerate(response.grounding_metadata.grounding_chunks):
+        res["grounding_metadata"].append({
+            "title": chunk.web.title,
+            "uri": chunk.web.uri,
+        })
+    for j, chunk in enumerate(response.grounding_metadata.grounding_supports):
+        res["grounding_supports"].append({
+            "text": chunk.segment.text
+        })
+    for k, query in enumerate(response.grounding_metadata.web_search_queries):
+        res["web_search_queries"].append(query)
+    return res

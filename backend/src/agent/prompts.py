@@ -198,6 +198,65 @@ Strict Hallucination Prevention
 
 Research the company: {company_name}
 """
+# what global companies are planning to setup their offices as global capability centers in india. can you list some real estate related decision makers?
+
+# Which companies in UK are planning to setup global capability centers in india this year. can you research about companies that recieved/announced some kind of investment related to this?
+
+last_answer_instructions = """Generate a high-quality json response containing a list of the people and their roles and categorize them based on their companies using the provided summaries.
+
+Instructions:
+- The current date is {current_date}.
+- You have to return the response in a JSON format only.
+- You have access to all the information gathered from the previous steps.
+- You have access to the user's question.
+
+Example Ouptut:
+```json
+{{
+    "company_name": "Company 1",
+    "people": [
+      {{ "person_name": "Person Name", 
+      "job_title": "CEO /Country Manager, etc., 
+      "location": city/state/India" ,
+      "linkedin_profile": "link to the person's profile",
+      "bio_summary": "brief biographical summary",
+      "confidence_score": a float between 0 and 1 representing the confidence score for the extraction,
+      "additional_details": "any other relevant personal/professional details"
+      }},
+      {{ "person_name": "Person Name", 
+      "job_title": "RE Head/Manager, etc., 
+      "location": city/state/India" ,
+      "linkedin_profile": "link to the person's profile",
+      "bio_summary": "brief biographical summary",
+      "confidence_score": a float between 0 and 1 representing the confidence score for the extraction,
+      "additional_details": "any other relevant personal/professional details"
+      }},
+    ]
+    "extraction_notes": "Some notes about the extraction process or ambiguities"
+  },
+  {
+    "company": "Company 2",
+    "people": [
+      {{ "person_name": "Person Name", 
+      "job_title": "Job title", 
+      "location": city/state/India" ,
+      "linkedin_profile": "link to the person's profile",
+      "bio_summary": "brief biographical summary",
+      "confidence_score": a float between 0 and 1 representing the confidence score for the extraction,
+      "additional_details": "any other relevant personal/professional details"
+      }},,
+      // …
+    ]
+  }}
+```
+
+User Context:
+- {research_topic}
+
+Summaries:
+{summaries}
+
+"""
 
 # Example Output:
 # ```json

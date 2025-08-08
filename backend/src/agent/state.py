@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TypedDict, List
+from typing import TypedDict, List, Sequence
 
 from langgraph.graph import add_messages
+from langgraph.graph.ui import AnyUIMessage, ui_message_reducer
 from typing_extensions import Annotated
 from agent.tools_and_schemas import ExtractionResult
 
@@ -13,6 +14,7 @@ import operator
 
 class OverallState(TypedDict):
     messages: Annotated[list, add_messages]
+    ui: Annotated[Sequence[AnyUIMessage], ui_message_reducer]
     search_query: Annotated[list, operator.add]
     web_research_result: Annotated[list, operator.add]
     sources_gathered: Annotated[list, operator.add]
@@ -20,6 +22,7 @@ class OverallState(TypedDict):
     max_research_loops: int
     research_loop_count: int
     reasoning_model: str
+    companies_found: Annotated[list, operator.add]
     people_details: Annotated[list, operator.add]
 
 
