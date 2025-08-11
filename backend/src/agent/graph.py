@@ -1,7 +1,6 @@
 import os
 import uuid
 
-from agent.tools_and_schemas import SearchQueryList, Reflection, ExtractionResult, PeopleExtractionResult, FinalResult
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage
 from langgraph.types import Send
@@ -9,8 +8,10 @@ from langgraph.graph import StateGraph
 from langgraph.graph import START, END
 from langgraph.graph.ui import push_ui_message
 from langchain_core.runnables import RunnableConfig
+from langchain_google_genai import ChatGoogleGenerativeAI
 from google.genai import Client
 
+from agent.tools_and_schemas import SearchQueryList, Reflection, ExtractionResult, PeopleExtractionResult, FinalResult
 from agent.state import (
     OverallState,
     QueryGenerationState,
@@ -29,7 +30,6 @@ from agent.prompts import (
     company_extraction_instructions,
     people_extraction_instructions
 )
-from langchain_google_genai import ChatGoogleGenerativeAI
 from agent.utils import (
     get_citations,
     get_research_topic,
