@@ -28,6 +28,9 @@ services:
       retries: 5
       interval: 5s
   langgraph-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: gemini-fullstack-langgraph
     container_name: langgraph-api
     ports:

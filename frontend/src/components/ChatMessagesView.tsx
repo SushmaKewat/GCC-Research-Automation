@@ -10,18 +10,20 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ActivityTimeline, ProcessedEvent } from '@/components/ActivityTimeline'; // Assuming ActivityTimeline is in the same dir or adjust path
 import PeopleListWrapper from '@/components/mui/PeopleListWrapper';
-import { LoadExternalComponent, UIMessage } from '@langchain/langgraph-sdk/react-ui';
 import { useStream } from '@langchain/langgraph-sdk/react';
-import { useStreamContext } from '@langchain/langgraph-sdk/react-ui';
-const DebugUI = () => {
-	const ctx = useStreamContext<{ companies: any[] }>();
-	console.log('STREAM CTX INSIDE DEBUG:', ctx);
-	return <div style={{ background: 'lightcoral' }}>DEBUG</div>;
-};
-const clientComponents = {
-	// companies_list: DebugUI,
-	companies_list: PeopleListWrapper,
-};
+import { UIMessage } from '@langchain/langgraph-sdk/react-ui';
+
+// import { useStreamContext } from '@langchain/langgraph-sdk/react-ui';
+
+// const DebugUI = () => {
+// 	const ctx = useStreamContext<{ companies: any[] }>();
+// 	console.log('STREAM CTX INSIDE DEBUG:', ctx);
+// 	return <div style={{ background: 'lightcoral' }}>DEBUG</div>;
+// };
+// const clientComponents = {
+// 	// companies_list: DebugUI,
+// 	companies_list: PeopleListWrapper,
+// };
 
 // Markdown component props type from former ReportView
 type MdComponentProps = {

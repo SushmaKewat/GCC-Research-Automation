@@ -1,7 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
-from langchain_community.utilities import GoogleSearchAPIWrapper
 
 
 class SearchQueryList(BaseModel):
@@ -78,15 +77,3 @@ class FinalResult(BaseModel):
     companies: List[PeopleExtractionResult] = Field(description="List of extracted companies with people details")
 
 
-@tool
-def find_people_profiles(query: str, k=5):
-    """Tool node that performs a google search to find linkednin profiles of people in a company
-
-    Args:
-        query (str): linkedin search query
-        k (int, optional): number of results to return. Defaults to 5.
-    """
-    search = GoogleSearchAPIWrapper(k=k)
-    results =  search.results(query, k)
-    print("GOOGLE SEARCH RESULTS: ", results)
-    return results

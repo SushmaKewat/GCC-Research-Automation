@@ -4,7 +4,6 @@ import AccordionDetails from '@mui/joy/AccordionDetails';
 import AccordionGroup from '@mui/joy/AccordionGroup';
 import AccordionSummary from '@mui/joy/AccordionSummary';
 import Table from '@mui/joy/Table';
-import { Download } from 'lucide-react';
 import DownloadCSV from '../DownloadCSV';
 
 // import { useStreamContext } from '@langchain/langgraph-sdk/react-ui';
