@@ -1,4 +1,4 @@
-[project]
+cd[project]
 name = "agent"
 version = "0.0.1"
 description = "Backend for the Sales Intelligence LangGraph agent"

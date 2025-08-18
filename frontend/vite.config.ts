@@ -22,5 +22,6 @@ export default defineConfig({
 				// rewrite: (path) => path.replace(/^\/api/, ''),
 			},
 		},
+		allowedHosts: ['ai-research.riskedgesolutions.com', 'localhost', '127.0.0.1'],
 	},
 });
