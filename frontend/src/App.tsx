@@ -7,6 +7,8 @@ import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ChatMessagesView } from '@/components/ChatMessagesView';
 import { Button } from '@/components/ui/button';
 
+// which global companies are planning to setup global capability centers in india and who are the real estate decision makers in these companies in india
+
 export default function App() {
 	const [processedEventsTimeline, setProcessedEventsTimeline] = useState<ProcessedEvent[]>([]);
 	const [historicalActivities, setHistoricalActivities] = useState<
@@ -22,9 +24,7 @@ export default function App() {
 		max_research_loops: number;
 		reasoning_model: string;
 	}>({
-		apiUrl: import.meta.env.DEV
-			? `${import.meta.env.VITE_REACT_SERVER_URL}`
-			: 'http://localhost:8123',
+		apiUrl: `${import.meta.env.VITE_REACT_SERVER_URL}`,
 		assistantId: 'agent',
 		messagesKey: 'messages',
 		onCustomEvent: (event, options) => {
