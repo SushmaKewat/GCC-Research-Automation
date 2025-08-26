@@ -1,11 +1,16 @@
 import { useStream } from '@langchain/langgraph-sdk/react';
 import { UIMessage, uiMessageReducer } from '@langchain/langgraph-sdk/react-ui';
 import type { Message } from '@langchain/langgraph-sdk';
+
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { ProcessedEvent } from '@/components/ActivityTimeline';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ChatMessagesView } from '@/components/ChatMessagesView';
 import { Button } from '@/components/ui/button';
+
+import logo from '/logo.png';
 
 // which global companies are planning to setup global capability centers in india and who are the real estate decision makers in these companies in india
 
@@ -14,6 +19,12 @@ export default function App() {
 	const [historicalActivities, setHistoricalActivities] = useState<
 		Record<string, ProcessedEvent[]>
 	>({});
+	const navigate = useNavigate();
+
+	const handleLogout = () => {
+		localStorage.removeItem('isLoggedIn');
+		navigate('/login');
+	};
 	const scrollAreaRef = useRef<HTMLDivElement>(null);
 	const hasFinalizeEventOccurredRef = useRef(false);
 	const [error, setError] = useState<string | null>(null);
@@ -172,6 +183,17 @@ export default function App() {
 
 	return (
 		<div className='flex h-screen bg-neutral-800 text-neutral-100 font-sans antialiased'>
+			<div className='absolute top-5 left-2'>
+				<img src={logo} alt='Risk Edge Solutions' width={150} />
+			</div>
+			<div className='absolute top-5 right-2'>
+				<button
+					onClick={handleLogout}
+					className='bg-red-800 hover:bg-red-600 text-white px-4 py-1 rounded-lg transition duration-200'>
+					Logout
+				</button>
+			</div>
+
 			<main className='h-full w-full max-w-4xl mx-auto'>
 				{thread.messages.length === 0 ? (
 					<WelcomeScreen
