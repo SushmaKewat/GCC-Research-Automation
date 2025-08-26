@@ -13,18 +13,6 @@ import PeopleListWrapper from '@/components/mui/PeopleListWrapper';
 import { useStream } from '@langchain/langgraph-sdk/react';
 import { UIMessage } from '@langchain/langgraph-sdk/react-ui';
 
-// import { useStreamContext } from '@langchain/langgraph-sdk/react-ui';
-
-// const DebugUI = () => {
-// 	const ctx = useStreamContext<{ companies: any[] }>();
-// 	console.log('STREAM CTX INSIDE DEBUG:', ctx);
-// 	return <div style={{ background: 'lightcoral' }}>DEBUG</div>;
-// };
-// const clientComponents = {
-// 	// companies_list: DebugUI,
-// 	companies_list: PeopleListWrapper,
-// };
-
 // Markdown component props type from former ReportView
 type MdComponentProps = {
 	className?: string;
@@ -196,40 +184,33 @@ const AiMessageBubble: React.FC<AiMessageBubbleProps> = ({
 					/>
 				</div>
 			)}
-			{!uiForMsg.length && <ReactMarkdown components={mdComponents}>{content}</ReactMarkdown>}
+			{!uiForMsg.length && (
+				<>
+					<ReactMarkdown components={mdComponents}>{content}</ReactMarkdown>
+					<Button
+						variant='default'
+						className={`cursor-pointer bg-neutral-700 border-neutral-600 text-neutral-300 self-end ${
+							message.content.length > 0 ? 'visible' : 'hidden'
+						}`}
+						onClick={() =>
+							handleCopy(
+								typeof message.content === 'string'
+									? message.content
+									: JSON.stringify(message.content),
+								message.id!
+							)
+						}>
+						{copiedMessageId === message.id ? 'Copied' : 'Copy'}
+						{copiedMessageId === message.id ? <CopyCheck /> : <Copy />}
+					</Button>
+				</>
+			)}
 
 			{uiForMsg.map((ui) => (
 				<>
-					{console.log('UI: ', ui.props.companies)}
 					<PeopleListWrapper companies={ui.props.companies} />
-					{/* <LoadExternalComponent
-						key={ui.id}
-						stream={thread}
-						message={ui}
-						components={clientComponents}
-						fallback={
-							<ReactMarkdown components={mdComponents}>{content}</ReactMarkdown>
-						}
-					/> */}
 				</>
 			))}
-
-			<Button
-				variant='default'
-				className={`cursor-pointer bg-neutral-700 border-neutral-600 text-neutral-300 self-end ${
-					message.content.length > 0 ? 'visible' : 'hidden'
-				}`}
-				onClick={() =>
-					handleCopy(
-						typeof message.content === 'string'
-							? message.content
-							: JSON.stringify(message.content),
-						message.id!
-					)
-				}>
-				{copiedMessageId === message.id ? 'Copied' : 'Copy'}
-				{copiedMessageId === message.id ? <CopyCheck /> : <Copy />}
-			</Button>
 		</div>
 	);
 };

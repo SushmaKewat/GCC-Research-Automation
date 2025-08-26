@@ -29,7 +29,6 @@ export type PeopleExtractionResultProps = {
 	}[];
 };
 export const PeopleList: React.FC<PeopleExtractionResultProps> = ({ companies }) => {
-	console.log(companies);
 	return (
 		<>
 			<div className='text-white w-full'>
@@ -92,7 +91,7 @@ export const PeopleList: React.FC<PeopleExtractionResultProps> = ({ companies })
 					</AccordionGroup>
 				))}
 			</div>
-			<DownloadCSV data={companies} />
+			{companies.length > 0 && <DownloadCSV data={companies} />}
 		</>
 	);
 };
