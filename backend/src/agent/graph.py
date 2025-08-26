@@ -386,13 +386,10 @@ def find_people(state: ExtractPeopleDetailsState, config:RunnableConfig) -> Over
             "temperature": 0,
         },
     )
-    
-    # response = save_response(response)
-    
-    
+
     return {
-        "people_details": [f"{state['company']}: \n"+response.text],
-        "companies_found": [state["company"]],
+        "people_details": [f"{state['company']}: \n"+ (response.text or "")],
+        "companies_found": [state["company"]]
     } 
     
 def last_answer(state: OverallState, config: RunnableConfig):
@@ -403,15 +400,12 @@ def last_answer(state: OverallState, config: RunnableConfig):
     # Format the prompt
     current_date = get_current_date()
     
-    # print("FIND PEOPLE RESPONSE: ", state['people_details'])
-    
     formatted_prompt = answer_instructions.format(
         current_date=current_date,
         research_topic=get_research_topic(state["messages"]),
         summaries="\n---\n\n".join(state["people_details"]),
     )
 
-    # init Reasoning Model, default to Gemini 2.5 Flash
     llm = ChatGoogleGenerativeAI(
         model=reasoning_model,
         temperature=0,
@@ -420,11 +414,6 @@ def last_answer(state: OverallState, config: RunnableConfig):
     ).with_structured_output(FinalResult)
     
     result = llm.invoke(formatted_prompt)
-    
-    # print("STATE BEFORE FINAL RESULTS: ", state["messages"])
-    # The above code is a Python script that prints the value of the variable `result` along with the
-    # text "FINAL RESULT: ".
-    print("FINAL RESULT: ", result.model_dump())
     
     msg = AIMessage(id=str(uuid.uuid4()), content="Key companies: \n")
     
