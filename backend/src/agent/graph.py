@@ -395,7 +395,7 @@ def find_people(state: ExtractPeopleDetailsState, config:RunnableConfig) -> Over
         "companies_found": [state["company"]],
     } 
     
-def last_answer(state: OverallState, config: Configuration):
+def last_answer(state: OverallState, config: RunnableConfig):
     """Langgraph node that returns the final answer containg the details about people associated with companies."""   
     configurable = Configuration.from_runnable_config(config)
     reasoning_model = state.get("reasoning_model") or configurable.answer_model
