@@ -1,4 +1,4 @@
-cd[project]
+[project]
 name = "agent"
 version = "0.0.1"
 description = "Backend for the Sales Intelligence LangGraph agent"
@@ -8,8 +8,7 @@ authors = [
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11,<4.0"
-dependencies = [
-    "langgraph>=0.2.6",
+dependencies = ["langgraph>=0.2.6",
     "langchain>=0.3.19",
     "langchain-google-genai",
     "python-dotenv>=1.0.1",
@@ -19,8 +18,7 @@ dependencies = [
     "fastapi",
     "google-genai",
     "python-jose",
-    "python-multipart"
-]
+    "python-multipart"]
 
 
 [project.optional-dependencies]
