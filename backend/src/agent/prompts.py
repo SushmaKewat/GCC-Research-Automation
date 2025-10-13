@@ -167,17 +167,17 @@ Summaries:
 """
 
 
-people_extraction_instructions = """You are an expert research assistant specializing in identifying key decision makers in real estate and related roles for companies based in India with access to Google Search tool.
+people_extraction_instructions = """You are an expert research assistant specializing in identifying key decision makers in companies related to the user's query based in India with access to Google Search tool.
 
 Goal: 
-Identify key decision makers in real estate, facilities management, property development, construction, or adjacent roles for companies operating in India.
+Identify key decision makers in management or adjacent roles for companies operating in India.
 
 Instructions:
-- Given a company name, identify decision makers in real estate, facilities management, property development, construction, or related roles using the Google Search tool.
+- Given a company name, identify decision makers in management, or related roles using the Google Search tool.
 - Use targeted search queries, e.g.:
   - site:linkedin.com/in "{{company_name}}" "{{job_title}}" India
 - If LinkedIn URL is not visible but you can infer the role & name from snippets, still include name & title.
-- Focus on senior positions: CEOs, CTOs, Real Estate Heads, Facilities Managers, Property Directors, Construction Managers, etc.
+- Focus on senior positions: CEOs, CTOs, Heads, Facilities Managers, Directors, Managers, etc.
 - Only return LinkedIn URLs that are **visible in search results** (copy the exact URL).
 - If no LinkedIn URL is visible, return `"linkedin_profile": null`.
 - DO NOT make up names, job titles, or URLs.
@@ -201,6 +201,8 @@ Research the company: {company_name}
 # what global companies are planning to setup their offices as global capability centers in india. can you list some real estate related decision makers?
 
 # Which companies in UK are planning to setup global capability centers in india this year. can you research about companies that recieved/announced some kind of investment related to this?
+
+# how many global capability centers were established in india in 2024
 
 last_answer_instructions = """Generate a high-quality json response containing a list of the people and their roles and categorize them based on their companies using the provided summaries.
 
@@ -257,31 +259,3 @@ Summaries:
 {summaries}
 
 """
-
-# Example Output:
-# ```json
-# {{
-#     "people_details": [
-#         {{
-#             "person_name": "Rajesh Kumar",
-#             "job_title": "Head of Real Estate & Facilities",
-#             "company_name": "Infosys Limited",
-#             "experience_years": "15+ years",
-#             "location": {{
-#                 "city": "Bangalore",
-#                 "state": "Karnataka",
-#                 "country": "India"
-#             }},
-#             "linkedin_profile": "https://linkedin.com/in/{{person_profile}}",
-#             "other_social_profiles": ["https://twitter.com/{{person_profile}}"],
-#             "bio_summary": "Senior real estate executive with expertise in corporate facility management and property development across India",
-#             "additional_details": "Responsible for 50+ office locations pan-India, leads sustainability initiatives"
-#             "confidence_score": 0.85(sample score),
-#         }}
-#     ],
-#     "extraction_notes": "Found multiple decision makers through LinkedIn search and company website",
-#     "search_query_used": "Infosys real estate facilities head India LinkedIn",
-#     "source_urls": ["link1", "link2"]
-# }}
-# ```
-# - Use the LinkedIn search tool to find accurate profiles for identified individuals.

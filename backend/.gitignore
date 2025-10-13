@@ -8,6 +8,7 @@ uv.lock
 
 test-graph.ipynb
 practice
+app.log
 
 
 # C extensions

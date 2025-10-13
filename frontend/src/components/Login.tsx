@@ -1,24 +1,40 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import logo from '/logo.png';
 
 export default function Login() {
 	const [username, setUsername] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
+	//@ts-ignore
+	const [token, setToken] = useState<string | null>(localStorage.getItem('research_token'));
+	const [message, setMessage] = useState<string>('');
 	const navigate = useNavigate();
 
-	const handleSubmit = (e: FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 
-		// Fake auth (frontend only)
-		if (
-			username === `${import.meta.env.VITE_REACT_USERNAME}` &&
-			password === `${import.meta.env.VITE_REACT_PASSWORD}`
-		) {
-			localStorage.setItem('isLoggedIn', 'true');
+		try {
+			const res = await axios.post(
+				`${import.meta.env.VITE_REACT_SERVER_URL}/login`,
+				new URLSearchParams({
+					username,
+					password,
+				}),
+				{
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+				}
+			);
+			console.log(res);
+			const accessToken = res.data.access_token;
+			localStorage.setItem('research_token', accessToken);
+			setToken(accessToken);
+			setMessage('Login successful!');
 			navigate('/');
-		} else {
-			alert('Invalid username or password');
+		} catch (err) {
+			setMessage('Login failed!');
 		}
 	};
 
@@ -36,6 +52,7 @@ export default function Login() {
 					<input
 						type='text'
 						placeholder='Username'
+						autoComplete='username'
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						className='w-full px-4 py-2 bg-[#2a2a2a] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'
@@ -45,6 +62,7 @@ export default function Login() {
 					<input
 						type='password'
 						placeholder='Password'
+						autoComplete='current-password'
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						className='w-full px-4 py-2 bg-[#2a2a2a] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'
@@ -57,6 +75,15 @@ export default function Login() {
 						Login
 					</button>
 				</form>
+				{/* <div className='mt-4'>
+					<button
+						onClick={getProtected}
+						className='bg-green-600 text-white p-2 rounded hover:bg-green-700'>
+						Access App
+					</button>
+				</div> */}
+
+				{message && <p className='mt-4 text-gray-700'>{message}</p>}
 
 				<p className='text-center text-gray-400 text-sm mt-6'>
 					© {new Date().getFullYear()} Risk Edge Solutions

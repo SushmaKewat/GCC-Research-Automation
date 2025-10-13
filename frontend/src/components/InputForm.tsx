@@ -26,7 +26,7 @@ export const InputForm: React.FC<InputFormProps> = ({
 }) => {
 	const [internalInputValue, setInternalInputValue] = useState('');
 	const [effort, setEffort] = useState('medium');
-	const [model, setModel] = useState('gemini-2.5-flash');
+	const [model, setModel] = useState('gemini-2.5-pro-preview-05-06');
 
 	const handleInternalSubmit = (e?: React.FormEvent) => {
 		if (e) e.preventDefault();

@@ -37,6 +37,7 @@ from agent.utils import (
     resolve_urls,
     save_response
 )
+from agent.logger import setup_logger
 
 load_dotenv()
 
@@ -46,6 +47,9 @@ if os.getenv("GEMINI_API_KEY") is None:
 # Used for Google Search API
 genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
+logger = setup_logger("RESEARCH_AGENT")
+
+print("logger: ", logger)
 
 # Nodes
 def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
@@ -61,6 +65,7 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
     Returns:
         Dictionary with state update, including search_query key containing the generated queries
     """
+    logger.info(f"QUERY: {get_research_topic(state['messages'])}")
     configurable = Configuration.from_runnable_config(config)
 
     # check for custom initial search query count
@@ -135,6 +140,7 @@ def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     citations = get_citations(response, resolved_urls)
     modified_text = insert_citation_markers(response.text, citations)
     sources_gathered = [item for citation in citations for item in citation["segments"]]
+    logger.info(f"WEB RESEARCH: {len(sources_gathered)} sources gathered")
 
     return {
         "sources_gathered": sources_gathered,
@@ -344,6 +350,7 @@ def extract_companies(state: OverallState, config: RunnableConfig) -> CompanyExt
   results =  structured_llm.invoke(formatted_prompt)
   
   company_list = list(company.company_name for company in results.entities)
+  logger.info(f"EXTRACT COMPANIES: Found {len(company_list)} companies.")
   
   return {
       "companies": [results],

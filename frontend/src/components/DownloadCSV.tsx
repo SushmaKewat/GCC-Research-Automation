@@ -19,7 +19,7 @@ const DownloadCSV = ({ data }: { data: any[] }) => {
 				const loc = [p.location?.city, p.location?.state, p.location?.country].filter(
 					Boolean
 				);
-				console.log(p.job_title);
+				// console.log(p.job_title);
 
 				rows.push([
 					c.company_name,
@@ -33,7 +33,7 @@ const DownloadCSV = ({ data }: { data: any[] }) => {
 			});
 		});
 
-		console.log(rows.join('\n'));
+		// console.log(rows.join('\n'));
 
 		const lines = [
 			fileHeaders.join(','),
