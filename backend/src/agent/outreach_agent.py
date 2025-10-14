@@ -1,4 +1,5 @@
 import os
+import asyncio
 from google.genai import Client
 from pydantic import BaseModel
 
@@ -101,8 +102,9 @@ async def generate_content(input):
     try:
         logger.info(f"CREATING OUTREACH MESSAGE: {input}")
         formatted_prompt = SYS_PROMPT.format(input=input)
+        
         # Used for Google Search API
-        genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
+        genai_client = await asyncio.to_thread(Client, api_key=os.getenv("GEMINI_API_KEY"))
         print("Generating content...")
         response = await genai_client.aio.models.generate_content(
             model='gemini-2.5-pro',
