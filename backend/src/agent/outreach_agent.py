@@ -98,14 +98,14 @@ DETAILS:
 {input}
 """
 
-async def generate_content(input):
+async def async_generate_content(input):
     try:
         await log_async(logger, "info", f"CREATING OUTREACH MESSAGE: {input}")
 
         formatted_prompt = SYS_PROMPT.format(input=input)
         
         # Used for Google Search API
-        genai_client = await asyncio.to_thread(Client, api_key=os.getenv("GEMINI_API_KEY"))
+        genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
         print("Generating content...")
         response = await genai_client.aio.models.generate_content(
             model='gemini-2.5-pro',
@@ -132,3 +132,7 @@ async def generate_content(input):
     except Exception as e:
         print(f"Error generating content: {e}")
         return None
+    
+async def generate_content(input):
+    response = await asyncio.to_thread(async_generate_content, input)
+    return response

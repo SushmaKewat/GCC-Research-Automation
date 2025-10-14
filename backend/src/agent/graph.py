@@ -49,8 +49,6 @@ genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 logger = setup_logger("RESEARCH_AGENT")
 
-# print("logger: ", logger)
-
 # Nodes
 async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
