@@ -123,11 +123,12 @@ app.mount(
 
 
 @app.post("/outreach")
-async def generate_outreach_message(input = Body(...), current_user: str = Depends(get_current_user)):
+async def generate_outreach_message(input = Body(...)):
+# async def generate_outreach_message(input = Body(...), current_user: str = Depends(gezt_current_user)):
     try:
         from agent.outreach_agent import generate_content
-        print(current_user)
-        logger.info(f"CREATING OUTREACH MESSAGE - USER: {current_user}")
+        # print(current_user)
+        logger.info(f"CREATING OUTREACH MESSAGE - USER:")
         response = await generate_content(input)
         
         return json.loads(response)
