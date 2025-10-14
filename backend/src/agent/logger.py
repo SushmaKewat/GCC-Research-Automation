@@ -1,7 +1,7 @@
 import logging
 import os
-from logging.handlers import RotatingFileHandler
-# from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
+# from logging.handlers import RotatingFileHandler
+from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
 
 def setup_logger(name: str, log_file: str = "app.log", level=logging.INFO) -> logging.Logger:
     if os.path.dirname(log_file):

@@ -18,7 +18,8 @@ dependencies = ["langgraph>=0.2.6",
     "fastapi",
     "google-genai",
     "python-jose",
-    "python-multipart"]
+    "python-multipart",
+    "concurrent_log_handler"]
 
 
 [project.optional-dependencies]
