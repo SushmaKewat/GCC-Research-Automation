@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from agent.logger import setup_logger
+from agent.logger import log_async, setup_logger
 
 logger = setup_logger("APP")
 
@@ -33,6 +33,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 def load_users():
     users = {}
@@ -64,7 +65,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     }
     
     token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-    logger.info(f"USER LOGGED IN - USER: {username}")
+    await log_async(logger, "info", f"USER LOGGED IN - USER: {username}")
     
     return {"access_token": token, "token_type": "bearer"}
 
@@ -123,12 +124,12 @@ app.mount(
 
 
 @app.post("/outreach")
-async def generate_outreach_message(input = Body(...)):
-# async def generate_outreach_message(input = Body(...), current_user: str = Depends(gezt_current_user)):
+# async def generate_outreach_message(input = Body(...)):
+async def generate_outreach_message(input = Body(...), current_user: str = Depends(get_current_user)):
     try:
         from agent.outreach_agent import generate_content
-        # print(current_user)
-        logger.info(f"CREATING OUTREACH MESSAGE - USER:")
+        print(current_user)
+        await log_async(logger, "info", f"CREATING OUTREACH MESSAGE - USER: {current_user}")
         response = await generate_content(input)
         
         return json.loads(response)

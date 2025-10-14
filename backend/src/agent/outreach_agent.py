@@ -3,7 +3,7 @@ import asyncio
 from google.genai import Client
 from pydantic import BaseModel
 
-from agent.logger import setup_logger
+from agent.logger import setup_logger, log_async
 
 logger = setup_logger("OUTREACH_AGENT")
 
@@ -100,7 +100,8 @@ DETAILS:
 
 async def generate_content(input):
     try:
-        logger.info(f"CREATING OUTREACH MESSAGE: {input}")
+        await log_async(logger, "info", f"CREATING OUTREACH MESSAGE: {input}")
+
         formatted_prompt = SYS_PROMPT.format(input=input)
         
         # Used for Google Search API

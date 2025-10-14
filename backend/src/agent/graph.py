@@ -37,7 +37,7 @@ from agent.utils import (
     resolve_urls,
     save_response
 )
-from agent.logger import setup_logger
+from agent.logger import setup_logger, log_async
 
 load_dotenv()
 
@@ -49,10 +49,10 @@ genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 logger = setup_logger("RESEARCH_AGENT")
 
-print("logger: ", logger)
+# print("logger: ", logger)
 
 # Nodes
-def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
+async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
 
     Uses Gemini 2.0 Flash to create an optimized search queries for web research based on
@@ -65,7 +65,8 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
     Returns:
         Dictionary with state update, including search_query key containing the generated queries
     """
-    logger.info(f"QUERY: {get_research_topic(state['messages'])}")
+    await log_async(logger, "info", f"GENERATING QUERY - QUERY: {get_research_topic(state['messages'])}")
+
     configurable = Configuration.from_runnable_config(config)
 
     # check for custom initial search query count
@@ -104,7 +105,7 @@ def continue_to_web_research(state: QueryGenerationState):
     ]
 
 
-def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
+async def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     """LangGraph node that performs web research using the native Google Search API tool.
 
     Executes a web search using the native Google Search API tool in combination with Gemini 2.0 Flash.
@@ -140,7 +141,7 @@ def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     citations = get_citations(response, resolved_urls)
     modified_text = insert_citation_markers(response.text, citations)
     sources_gathered = [item for citation in citations for item in citation["segments"]]
-    logger.info(f"WEB RESEARCH: {len(sources_gathered)} sources gathered")
+    await log_async(logger, "info", f"WEB RESEARCH: {len(sources_gathered)} sources gathered")
 
     return {
         "sources_gathered": sources_gathered,
@@ -314,7 +315,7 @@ def continue_to_comp_and_people_research( state: OverallState, config: RunnableC
         return "continue"
 
 # -----------------------NEW NODES-------------------------------
-def extract_companies(state: OverallState, config: RunnableConfig) -> CompanyExtractionState:
+async def extract_companies(state: OverallState, config: RunnableConfig) -> CompanyExtractionState:
   """Langgraph node that extracts companies from the final summary result.
   
   Processes the summaries to extract structured business entities including comapnies, investment amount, associated people and location.
@@ -350,7 +351,7 @@ def extract_companies(state: OverallState, config: RunnableConfig) -> CompanyExt
   results =  structured_llm.invoke(formatted_prompt)
   
   company_list = list(company.company_name for company in results.entities)
-  logger.info(f"EXTRACT COMPANIES: Found {len(company_list)} companies.")
+  await log_async(logger, "info", f"EXTRACT COMPANIES: Found {len(company_list)} companies.")
   
   return {
       "companies": [results],

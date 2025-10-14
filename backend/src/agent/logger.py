@@ -1,11 +1,13 @@
 import logging
 import os
+import asyncio
 # from logging.handlers import RotatingFileHandler
 from concurrent_log_handler import ConcurrentRotatingFileHandler as RotatingFileHandler
 
 def setup_logger(name: str, log_file: str = "app.log", level=logging.INFO) -> logging.Logger:
-    if os.path.dirname(log_file):
-        os.makedirs(log_file, exist_ok=True)
+    log_dir = os.path.dirname(log_file)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir, exist_ok=True)
     
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -24,3 +26,8 @@ def setup_logger(name: str, log_file: str = "app.log", level=logging.INFO) -> lo
     logger.propagate = False
     
     return logger
+
+async def log_async(logger: logging.Logger, level: str, message: str):
+    """Run any logger call in a separate thread to avoid blocking the event loop."""
+    log_func = getattr(logger, level, logger.info)
+    await asyncio.to_thread(log_func, message)
