@@ -2,9 +2,10 @@
 import pathlib
 import json
 import os
-from fastapi import FastAPI, Response, Body, HTTPException, status, Depends
+from fastapi import FastAPI, Response, Body, HTTPException, status, Depends, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
 from jose import jwt, JWTError
@@ -22,8 +23,8 @@ ALGORITHM = "HS256"
 app = FastAPI()
 
 origins = [
-    "https://ai-research.riskedgesolutions.com",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://ai-research.riskedgesolutions.com"
 ]
 
 app.add_middleware(
@@ -48,6 +49,41 @@ USERS = load_users()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
+# @app.middleware("http")
+# async def auth_middleware(request: Request, call_next):
+#     # Skip authentication for specific public routes
+#     public_paths = ["/login", "/docs"]
+#     if request.url.path in public_paths or request.url.path.startswith("/static"):
+#         return await call_next(request)
+
+#     # Extract the token from Authorization header
+#     auth_header = request.headers.get("Authorization")
+#     if not auth_header or not auth_header.startswith("Bearer "):
+#         return JSONResponse(
+#             status_code=401,
+#             content={"detail": "Missing or invalid authorization header"},
+#         )
+
+#     token = auth_header.split(" ")[1]
+
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         username: str = payload.get("sub")
+
+#         if username is None or username not in USERS:
+#             return JSONResponse(status_code=401, content={"detail": "Invalid token"})
+
+#         # Attach user info to the request state if needed
+#         request.state.user = username
+
+#     except JWTError:
+#         return JSONResponse(status_code=401, content={"detail": "Token validation failed"})
+
+#     # Proceed to the next middleware or route handler
+#     response = await call_next(request)
+#     return response
+
+
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     username = form_data.username
@@ -69,7 +105,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     
     return {"access_token": token, "token_type": "bearer"}
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -124,14 +161,20 @@ app.mount(
 
 
 @app.post("/outreach")
-# async def generate_outreach_message(input = Body(...)):
-async def generate_outreach_message(input = Body(...), current_user: str = Depends(get_current_user)):
+# async def generate_outreach_message( request: Request, input = Body(...)):
+async def generate_outreach_message( input = Body(...), current_user: str = Depends(get_current_user)):
     try:
         from agent.outreach_agent import generate_content
         print(current_user)
+        # print(request.state.user)
         await log_async(logger, "info", f"CREATING OUTREACH MESSAGE - USER: {current_user}")
+        # await log_async(logger, "info", f"CREATING OUTREACH MESSAGE - USER: {request.state.user}")
         response = await generate_content(input)
         
         return json.loads(response)
     except Exception as e:
         return {"error": str(e)}
+    
+@app.get("/hello")
+async def hello():
+    return {"message": f"Hello!"}

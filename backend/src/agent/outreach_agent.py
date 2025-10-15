@@ -98,7 +98,8 @@ DETAILS:
 {input}
 """
 
-async def async_generate_content(input):
+async def generate_content(input):
+# async def async_generate_content(input):
     try:
         await log_async(logger, "info", f"CREATING OUTREACH MESSAGE: {input}")
 
@@ -133,6 +134,6 @@ async def async_generate_content(input):
         print(f"Error generating content: {e}")
         return None
     
-async def generate_content(input):
-    response = await asyncio.to_thread(async_generate_content, input)
-    return response
+# async def generate_content(input):
+#     response = await asyncio.to_thread(async_generate_content, input)
+#     return response
