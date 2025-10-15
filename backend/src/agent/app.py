@@ -169,14 +169,12 @@ app.mount(
 # "langgraph-cli==0.1.65",
 #     "langgraph-api==0.0.38"
 @app.post("/outreach")
-# async def generate_outreach_message( request: Request, input = Body(...)):
 async def generate_outreach_message( input = Body(...), current_user: str = Depends(get_current_user)):
     try:
         from agent.outreach_agent import generate_content
         print(current_user)
         # print(request.state.user)
         await log_async(logger, "info", f"CREATING OUTREACH MESSAGE - USER: {current_user}")
-        # await log_async(logger, "info", f"CREATING OUTREACH MESSAGE - USER: {request.state.user}")
         response = await generate_content(input)
         
         return json.loads(response)

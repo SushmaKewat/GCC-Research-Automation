@@ -63,7 +63,7 @@ export default function OutreachPage() {
 				setData(result.data);
 				// console.log('RESULT: ', result);
 
-				if (result.statusText != 'OK') {
+				if (result.status != 200) {
 					setError("Couldn't generate message. Please try again.");
 				} else if (result.status == 200) {
 					if (result.data.channel == 'email') {
