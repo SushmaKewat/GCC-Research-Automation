@@ -1,7 +1,9 @@
 # mypy: disable - error - code = "no-untyped-def,misc"
+import os
+
 import pathlib
 import json
-import os
+import asyncio
 from fastapi import FastAPI, Response, Body, HTTPException, status, Depends, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +36,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# import inspect
+# print("🔍 Checking where os.getcwd() is called from...")
+# print("os.getcwd() called from:", inspect.stack()[1].filename)
+# print("Current working dir:", os.getcwd())  # This may trigger the blocking warning
 
 
 def load_users():
@@ -159,7 +166,8 @@ app.mount(
     name="frontend",
 )
 
-
+# "langgraph-cli==0.1.65",
+#     "langgraph-api==0.0.38"
 @app.post("/outreach")
 # async def generate_outreach_message( request: Request, input = Body(...)):
 async def generate_outreach_message( input = Body(...), current_user: str = Depends(get_current_user)):
@@ -178,3 +186,4 @@ async def generate_outreach_message( input = Body(...), current_user: str = Depe
 @app.get("/hello")
 async def hello():
     return {"message": f"Hello!"}
+
