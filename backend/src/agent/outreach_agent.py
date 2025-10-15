@@ -100,6 +100,11 @@ DETAILS:
 
 async def generate_content(input):
 # async def async_generate_content(input):
+    # import inspect, os
+    # print("🔍 Checking where os.getcwd() is called from...")
+    # print("os.getcwd() called from:", inspect.stack()[1].filename)
+    # print("Current working dir:", os.getcwd())  # This may trigger the blocking warning
+
     try:
         await log_async(logger, "info", f"CREATING OUTREACH MESSAGE: {input}")
 

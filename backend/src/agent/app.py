@@ -131,7 +131,7 @@ def create_frontend_router(build_dir="../frontend/dist"):
     Returns:
         A Starlette application serving the frontend.
     """
-    build_path = pathlib.Path(__file__).parent.parent.parent / build_dir
+    build_path = pathlib.Path(__file__).resolve().parent.parent.parent / build_dir
 
     if not build_path.is_dir() or not (build_path / "index.html").is_file():
         print(
