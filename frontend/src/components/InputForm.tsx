@@ -26,7 +26,7 @@ export const InputForm: React.FC<InputFormProps> = ({
 }) => {
 	const [internalInputValue, setInternalInputValue] = useState('');
 	const [effort, setEffort] = useState('medium');
-	const [model, setModel] = useState('gemini-2.5-pro-preview-05-06');
+	const [model, setModel] = useState('gemini-2.5-pro');
 
 	const handleInternalSubmit = (e?: React.FormEvent) => {
 		if (e) e.preventDefault();
@@ -141,12 +141,19 @@ export const InputForm: React.FC<InputFormProps> = ({
 									</div>
 								</SelectItem>
 								<SelectItem
-									value='gemini-2.5-pro-preview-05-06'
+									value='gemini-2.5-pro'
 									className='hover:bg-neutral-600 focus:bg-neutral-600 cursor-pointer'>
 									<div className='flex items-center'>
 										<Cpu className='h-4 w-4 mr-2 text-purple-400' /> 2.5 Pro
 									</div>
 								</SelectItem>
+								{/* <SelectItem
+									value='gemini-3-pro-preview'
+									className='hover:bg-neutral-600 focus:bg-neutral-600 cursor-pointer'>
+									<div className='flex items-center'>
+										<Cpu className='h-4 w-4 mr-2 text-pink-400' /> 3 Flash
+									</div>
+								</SelectItem> */}
 							</SelectContent>
 						</Select>
 					</div>

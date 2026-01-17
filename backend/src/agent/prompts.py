@@ -67,7 +67,7 @@ Output Format:
 Example:
 ```json
 {{
-    "is_sufficient": true, // or false
+    "is_sufficient": True, // or False
     "knowledge_gap": "The summary lacks information about performance metrics and benchmarks", // "" if is_sufficient is true
     "follow_up_queries": ["What are typical performance benchmarks and metrics used to evaluate [specific technology]?"] // [] if is_sufficient is true
 }}
@@ -103,7 +103,6 @@ Your task is to extract entities from the provided text, focusing on companies, 
 
 Extraction Guidelines:
 - Extract ALL relevant entities mentioned in the text (companies, funding, business deals, partnerships, etc.)
-- Capture monetary amounts with currency symbols and exact figures when available
 - Extract person names with their roles and company affiliations when mentioned
 - Include complete location information when available (city, state, country)
 - Identify industry or sector information
@@ -111,7 +110,6 @@ Extraction Guidelines:
 
 Data Quality Requirements:
 - Company names should be extracted exactly as mentioned in the text
-- Monetary amounts must preserve original currency and format
 - Person names should be complete when available
 - Locations should be as specific as possible based on available information
 - Use null/empty values for fields when information is not available or unclear
@@ -178,7 +176,6 @@ Instructions:
   - site:linkedin.com/in "{{company_name}}" "{{job_title}}" India
 - If LinkedIn URL is not visible but you can infer the role & name from snippets, still include name & title.
 - Focus on senior positions: CEOs, CTOs, Heads, Facilities Managers, Directors, Managers, etc.
-- Only return LinkedIn URLs that are **visible in search results** (copy the exact URL).
 - If no LinkedIn URL is visible, return `"linkedin_profile": null`.
 - DO NOT make up names, job titles, or URLs.
 - Prioritize India-based personnel or those with decision-making authority for Indian operations.
@@ -188,8 +185,6 @@ Instructions:
 
 Requirements:
 - Ensure all individuals are currently employed at the target company.
-- Focus on roles with real estate decision-making authority.
-- Include both direct real estate roles and adjacent positions (facilities, operations, procurement).
 
 Strict Hallucination Prevention
 - DO NOT invent LinkedIn URLs (e.g., `https://linkedin.com/in/name-company`).

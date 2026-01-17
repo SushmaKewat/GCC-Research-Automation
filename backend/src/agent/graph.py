@@ -11,7 +11,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from google.genai import Client
 
-from agent.tools_and_schemas import SearchQueryList, Reflection, ExtractionResult, PeopleExtractionResult, FinalResult
+from agent.tools_and_schemas import SearchQueryList, Reflection, ExtractionResult, FinalResult
 from agent.state import (
     OverallState,
     QueryGenerationState,
@@ -124,7 +124,7 @@ async def web_research(state: WebSearchState, config: RunnableConfig) -> Overall
 
     # Uses the google genai client as the langchain client doesn't return grounding metadata
     response = genai_client.models.generate_content(
-        model=configurable.query_generator_model,
+        model=configurable.reflection_model,
         contents=formatted_prompt,
         config={
             "tools": [{"google_search": {}}],
@@ -182,6 +182,8 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
         api_key=os.getenv("GEMINI_API_KEY"),
     )
     result = llm.with_structured_output(Reflection).invoke(formatted_prompt)
+    
+    print("RESULT FROM REFLECTION: ", result)
 
     return {
         "is_sufficient": result.is_sufficient,
@@ -348,7 +350,7 @@ async def extract_companies(state: OverallState, config: RunnableConfig) -> Comp
   # Run the LLM
   results =  structured_llm.invoke(formatted_prompt)
   
-  company_list = list(company.company_name for company in results.entities)
+  company_list = list(company.company_name for company in results.entities if results is not None)
   await log_async(logger, "info", f"EXTRACT COMPANIES: Found {len(company_list)} companies.")
   
   return {
