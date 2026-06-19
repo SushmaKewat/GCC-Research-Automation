@@ -53,7 +53,7 @@ logger = setup_logger("RESEARCH_AGENT")
 async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
 
-    Uses Gemini 2.0 Flash to create an optimized search queries for web research based on
+    Uses Gemini 2.5 Flash to create an optimized search queries for web research based on
     the User's question.
 
     Args:
